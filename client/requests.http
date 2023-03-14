@@ -2,6 +2,6 @@
 GET http://localhost:3000/
 
 ###
-GET http://localhost:3000/users
+GET http://localhost:3000/API
 
 GET http://localhost:3000/account

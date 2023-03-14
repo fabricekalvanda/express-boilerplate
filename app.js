@@ -6,8 +6,8 @@ var logger = require('morgan');
 
 var homeRouter = require('./routes/home');
 var usersRouter = require('./routes/users');
-var postsRouter = require('./routes/posts');
-var authRouter = require('./routes/auth');
+var postsRouter = require('./routes/post');
+var authRouter = require('./routes/API');
 const { authCheck } = require('./auth/authCheck');
 
 var app = express();
@@ -21,9 +21,9 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
 app.use('/', homeRouter);
-app.use('/users', authCheck, usersRouter);
-app.use('/posts', postsRouter);
-app.use('/auth', authRouter);
+app.use('/users', usersRouter);
+app.use('/post', postsRouter);
+app.use('/API', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
