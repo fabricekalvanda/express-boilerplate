@@ -34,8 +34,13 @@ let users = [
 let sessions = [
     {
         "sessionTime": "1678052012358",
-        "Token": "abc123",
+        "token": "abc123",
         "user": "admin",
+        "uid": "1"
+    },{
+        "sessionTime": "1678052012358",
+        "token": "abc12345",
+        "user": "jake",
         "uid": "1"
     }
 ];
@@ -106,6 +111,7 @@ let posts = [
 
 
 router.post('/signup', (req, resp, next) => {
+    let jsonResp = [];
     if (!req.body || !req.body.username || !req.body.password)
     {
         resp.send(401, 'Bad request');
@@ -123,6 +129,9 @@ router.post('/signup', (req, resp, next) => {
         {
             userId = userId + 1;
         }
+        if(username === element.username){
+            resp.send(401, 'username is already taken');
+        }
     });
     
     users.push({
@@ -136,19 +145,24 @@ router.post('/signup', (req, resp, next) => {
         user: username,
         uid: userId,
     });
+    jsonResp.push(
+        {
+          "token": mToken,
+          "UID": userId,
+        });
 
     console.log("Req Body: " + req.body);
     console.log("All Users: ");
     users.forEach(element => {
         console.log("Username: " + element.username + " Password: " + element.password + " ID: " + element.id);
     });
-    
-    resp.send({ token: mToken });
+    resp.send(JSON.stringify(jsonResp));
+    //resp.send({ token: mToken, UID: userId });
 });
 
 
 router.post('/login', (req, resp, next) => {
-   
+    let jsonResp = [];
     if(!req.headers.authorization){
         if (!req.body || !req.body.username || !req.body.password)
         {
@@ -168,16 +182,25 @@ router.post('/login', (req, resp, next) => {
             mToken = mToken.substring(2);
             const username = req.body.username;
             const timestamp = Date.now();
-           
-        
-            sessions.push({
-                sessionTime: timestamp,
-                token: mToken,
-                user: username,
-                uid: userID,
+            const tkn = mToken;
+            jsonResp.push(
+                {
+                  "token": tkn,
+                  "UID": userID,
+                });
+            //mToken = jsonResp.Token;
+            let ob = {
+                "sessionTime": timestamp,
+                "token": tkn,
+                "user": username,
+                "uid": userID };
+            sessions.push(ob);
+            console.log(sessions);
+            sessions.forEach(element => {
+                    console.log("Active sessions: " + element.token);
             });
-            
-            resp.send({ token: mToken });
+                
+            resp.send(JSON.stringify(jsonResp));
         }
 
     } else {
@@ -204,9 +227,11 @@ router.get('/feed', (req, resp) => { //getting friends posts
     let mToken = req.headers.authorization.substring(7);
     let passFail = 0;
     sessions.forEach(element => {
-        if (element.Token === mToken){
+        if (element.token === mToken){
             passFail = 1;
+            
         }
+        console.log("Session: " + element.token + " given: " + mToken);
     });
     if (!(passFail === 1)){
         resp.send(401, 'not authenticated');
@@ -242,7 +267,7 @@ router.get('/posts', (req, resp, next) => { //getting my posts
     let mToken = req.headers.authorization.substring(7);
     let passFail = 0;
     sessions.forEach(element => {
-        if (element.Token === mToken){
+        if (element.token === mToken){
             passFail = 1;
         }
     });
@@ -276,7 +301,7 @@ router.get('/posts', (req, resp, next) => { //getting my posts
     let mToken = req.headers.authorization.substring(7);
     let passFail = 0;
     sessions.forEach(element => {
-        if (element.Token === mToken){
+        if (element.token === mToken){
             passFail = 1;
         }
     });
@@ -284,16 +309,17 @@ router.get('/posts', (req, resp, next) => { //getting my posts
         resp.send(401, 'not authenticated');
     }
 
-    let date = Date.now();
+    let date = Date.now().toString();
     posts.push(
       {
-        userid: toString(req.body.id),
-        title: toString(req.body.title),
-        image: toString(req.body.image),
-        desc: toString(req.body.desc),
-        date: toString(date),
+        "userid": req.body.id,
+        "title": req.body.title,
+        "image": req.body.image,
+        "desc": req.body.desc,
+        "date": date,
       }
     );
+    console.log(posts);
     resp.send("you made a post at " + Date.now() + " titled " + req.body.title);
   });
   
@@ -306,7 +332,7 @@ router.delete('/posts', (req, resp, next) => { //delete a post
     let mToken = req.headers.authorization.substring(7);
     let passFail = 0;
     sessions.forEach(element => {
-        if (element.Token === mToken){
+        if (element.token === mToken){
             passFail = 1;
         }
     });
@@ -342,14 +368,14 @@ router.get('/friends', (req, resp, next) => { //delete a post
     let mToken = req.headers.authorization.substring(7);
     let passFail = 0;
     sessions.forEach(element => {
-        if (element.Token === mToken){
+        if (element.token === mToken){
             passFail = 1;
         }
     });
     if (!(passFail === 1)){
         resp.send(401, 'not authenticated');
     }
-    
+
     friends.forEach(friend => {
         if(req.body.id === friend.userid){
             users.forEach(user => {
@@ -363,6 +389,34 @@ router.get('/friends', (req, resp, next) => { //delete a post
         }
     });
     resp.send(JSON.stringify(jsonResp));
+  });
+
+  router.post('/friends', (req, resp, next) => { //delete a post
+    let jsonResp = [];
+    if (!req.body || !req.body.id || !req.body.friendid)
+    {
+        resp.send(401, 'Bad request');
+    }
+
+    let mToken = req.headers.authorization.substring(7);
+    let passFail = 0;
+    sessions.forEach(element => {
+        if (element.token === mToken){
+            passFail = 1;
+        }
+    });
+    if (!(passFail === 1)){
+        resp.send(401, 'not authenticated');
+    }
+
+    friends.push(
+        {
+            "userid": req.body.id,
+            "friendid": req.body.friendid
+        }
+    );
+    
+    resp.send("Added friend with ID: " + req.body.friendid);
   });
 
 module.exports = router;
