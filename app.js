@@ -11,7 +11,7 @@ var authRouter = require('./routes/auth');
 const { authCheck } = require('./auth/authCheck');
 
 var app = express();
-
+//test
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
