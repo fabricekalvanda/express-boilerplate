@@ -6,130 +6,186 @@
 Bearer token: ab4s5sy63c
 ```
 **Getting a token:**
-1. You can sign up using the endpoint /auth/signup and include your username and password in the body.
-2. You can login using /auth/login and include your username and password in the body
-3. You can use the endpoint /auth/login as described in option 2 along with your current auth token.
+1. You can sign up using the endpoint /API/signup and include your username and password in the body.
+2. You can login using /API/login and include your username and password in the body
+3. You can use the endpoint /API/login as described in option 2 along with your current auth token.
 
 ## Endpoints:
 ### Create account:
-POST /Account/:id?_method=POST\
+POST /API/signup\
 **Body:**
 ```
-    Username: <String - UTF8>
+    {
+        "username": String
+        "password": String
+    }
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Created <UserID>
-    Connection: close
+    401 Bad request
+    OR
+    401 username is already taken
+    OR
+    {
+        "token": <token>,
+        "UID": <UserID>,
+    }
 ```
-### Create post:
-POST /Account/Post/:id?_method=POST\
+### Login:
+POST /API/login\
 **Body:**
 ```
-    Title: <String - UTF8>
-    Image: <file>
-    Description: <String - UTF8>
-    Date: <Current Timestamp>
+    {
+        "username": String
+        "password": String
+    }
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Created
-    Connection: close
+    401 Bad request
+    OR
+    login failed. Please sign up.
+    OR
+    {
+        "token": <token>,
+        "UID": <UserID>,
+    }
 ```
-### Update post:
-PUT /Account/Post/:id?_method=PUT\
+### Get Feed:
+GET /API/feed\
+**Head:**
+```
+    Bearer token: ab4s5sy63c
+```
 **Body:**
 ```
-    Title: <String - UTF8>
-    Image: <file>
-    Description: <String - UTF8>
-    EditDate: <Current Timestamp>
+    {
+        "id": "4"
+    }
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Updated post <Post title>
-    Connection: close
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    {
+        "userid": String,
+        "title": String,
+        "image": String,
+        "desc": String,
+        "date": String,
+    }
 ```
-### Delete post:
-DELETE /Account/Post/id\
-**Response:**
+### Get Posts:
+PUT /API/posts\
+**Head:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Deleted post <Post title> - <ID>
-    Connection: close
+    Bearer token: ab4s5sy63c
 ```
-### Add to your followers:
-PUT /Account/:id?_method=PUT\
 **Body:**
 ```
-    MyID: <INT>
-    FriendID: <INT>
+    {
+        "id": String,
+        "username": String,
+        "password": String
+    }
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Friended <Username>
-    Connection: close
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    {
+        "userid": String,
+        "title": String,
+        "image": String,
+        "desc": String,
+        "date": String,
+    }
 ```
-### View my posts:
-GET /Account/Posts/\
+### Make Post:
+POST /API/posts\
+**Head:**
+```
+    Bearer token: ab4s5sy63c
+```
 **Body:**
 ```
-    AccountID: <INT>
+    {
+        "id": String,
+        "title": String,
+        "image": String,
+        "desc": String
+    }
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Updated post <Post title>
-    Connection: close
-    Body:
-        [0]
-            PostID: <INT>
-            PosterID: <INT>
-            Title: <String>
-            ImageURL: <String>
-            Date: <Timestamp>
-        [1]
-            PostID: <INT>
-            PosterID: <INT>
-            Title: <String>
-            ImageURL: <String>
-            Date: <Timestamp>
-        [...]
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    you made a post at <CurTime> titled  <title>
 ```
-### View follower posts:
-GET /Account/Friends/Posts/
+### Remove Post:
+DELETE /API/posts/\
+**Head:**
+```
+    Bearer token: ab4s5sy63c
+```
 **Body:**
 ```
-    AccountID: <INT>
+    "date": String
 ```
 **Response:**
 ```
-    HTTP/1.1 200 OK
-    Date: <Date time format as string>
-    Status: Updated post <Post title>
-    Connection: close
-    **Body:**
-        [0]
-            PostID: <INT>
-            PosterID: <INT>
-            Title: <String>
-            ImageURL: <String>
-            Date: <Timestamp>
-        [1]
-            PostID: <INT>
-            PosterID: <INT>
-            Title: <String>
-            ImageURL: <String>
-            Date: <Timestamp>
-        [...]
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    post deleted
+```
+### Get friends:
+GET /API/friends\
+**Head:**
+```
+    Bearer token: ab4s5sy63c
+```
+**Body:**
+```
+    {
+        "id": String
+    }
+```
+**Response:**
+```
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    {
+        "username": user.username,
+    }
+```
+### Add friends:
+POST /API/friends\
+**Head:**
+```
+    Bearer token: ab4s5sy63c
+```
+**Body:**
+```
+    {
+        "id": String,
+        "friendid": String
+    }
+```
+**Response:**
+```
+    401 Bad request
+    OR
+    401 not authenticated
+    OR
+    Added friend with ID: <friendid>
 ```
